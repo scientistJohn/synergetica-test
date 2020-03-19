@@ -1,0 +1,23 @@
+---
+
+server:
+  port: 48091
+
+spring:
+  data:
+    mongodb:
+      username: admin
+      password: pswrd
+      host: localhost
+      port: 27017
+      database: synergetica-test
+      authentication-database: admin
+
+---
+
+spring:
+  profiles: docker
+  data:
+    mongodb:
+      host: mongodatabase
+      port: 27017

@@ -1,0 +1,19 @@
+version: '3'
+services:
+  mongodatabase:
+    image: mongo
+    ports:
+      - 27018:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: pswrd
+      MONGO_INITDB_DATABASE: admin
+
+  application:
+    build: .
+    ports:
+      - 48091:48091
+    depends_on:
+      - mongodatabase
+    environment:
+     SPRING_PROFILES_ACTIVE: docker
