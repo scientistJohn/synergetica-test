@@ -1,6 +1,7 @@
 package com.synergetica.controller;
 
 import com.synergetica.dto.EventsRanks;
+import com.synergetica.dto.PercentileBoundaries;
 import com.synergetica.service.EventService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +30,11 @@ public class EventController {
                                       @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                       @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return service.getEventsRanks(roadName, startDate, endDate);
+    }
+
+    @GetMapping("/percentiles")
+    public List<PercentileBoundaries> getPercentileBoundaries(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                              @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return service.getPercentileBoundaries(startDate, endDate);
     }
 }
