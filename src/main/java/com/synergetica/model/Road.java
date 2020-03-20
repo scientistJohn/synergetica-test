@@ -6,7 +6,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Document("roads")
@@ -25,7 +25,6 @@ public class Road {
         Integer amountOfCallDrops;
         Integer amountOfDataEvent;
         Integer amountOfLeakedDataEvents;
-        LocalDateTime startMeasurementTime;
-        LocalDateTime finishMeasurementTime;
+        LocalDate measurementDate;
     }
 }

@@ -10,8 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +22,8 @@ public class MongoInitScripts {
     public void init(MongoTemplate mongoTemplate) {
         mongoTemplate.indexOps(Road.class).ensureIndex(new Index().on("name", Sort.Direction.ASC).unique());
 
-        int[] createdRoads = {4};
-        createRoads(createdRoads[0], 100, 30).forEach(road -> {
+        int[] createdRoads = {10};
+        createRoads(createdRoads[0], 365).forEach(road -> {
             try {
                 mongoTemplate.save(road);
             } catch (DataIntegrityViolationException e) {
@@ -35,14 +34,14 @@ public class MongoInitScripts {
         log.info("Created {} roads", createdRoads);
     }
 
-    private List<Road> createRoads(int amount, int measurementsCount, int lastNDays) {
+    private List<Road> createRoads(int amount, int measurementsCount) {
         List<Road> roads = new ArrayList<>();
 
         for (int i = 0; i < amount; i++) {
             Road road = new Road();
 
             road.setName(String.format("Road_%d", RandomUtils.nextInt()));
-            road.setMeasurements(createMeasurements(measurementsCount, lastNDays));
+            road.setMeasurements(createMeasurements(measurementsCount));
 
             roads.add(road);
         }
@@ -50,31 +49,47 @@ public class MongoInitScripts {
         return roads;
     }
 
-    private List<Road.Measurement> createMeasurements(int measurementsCount, int lastNDays) {
+    private List<Road.Measurement> createMeasurements(int measurementsCount) {
         List<Road.Measurement> measurements = new ArrayList<>();
-        LocalDateTime firstMeasurementTime = LocalDateTime.now().minusDays(lastNDays);
-        long timeGap = firstMeasurementTime.until(LocalDateTime.now(), ChronoUnit.SECONDS) / measurementsCount;
+        LocalDate firstMeasurementDate = LocalDate.now().minusDays(measurementsCount);
 
         for (int i = 0; i < measurementsCount; i++) {
             Road.Measurement measurement = new Road.Measurement();
 
-            int amountOfCalls = RandomUtils.nextInt(0, 100);
+            int amountOfCalls = RandomUtils.nextInt(1, 100);
             int amountOfCallDrops = RandomUtils.nextInt(0, amountOfCalls);
-            int amountOfDataEvent = RandomUtils.nextInt(0, 100);
+            int amountOfDataEvent = RandomUtils.nextInt(1, 100);
             int amountOfLeakedDataEvents = RandomUtils.nextInt(0, amountOfDataEvent);
-            LocalDateTime startMeasurementTime = firstMeasurementTime.plusSeconds(i * timeGap);
-            LocalDateTime finishMeasurementTime = firstMeasurementTime.plusSeconds((i + 1) * timeGap);
+            LocalDate measurementDate = firstMeasurementDate.plusDays(i);
 
             measurement.setAmountOfCalls(amountOfCalls);
             measurement.setAmountOfCallDrops(amountOfCallDrops);
             measurement.setAmountOfDataEvent(amountOfDataEvent);
             measurement.setAmountOfLeakedDataEvents(amountOfLeakedDataEvents);
-            measurement.setStartMeasurementTime(startMeasurementTime);
-            measurement.setFinishMeasurementTime(finishMeasurementTime);
+            measurement.setMeasurementDate(measurementDate);
 
             measurements.add(measurement);
         }
 
         return measurements;
     }
+
+    @ChangeSet(order = "002", id = "createUnwindedRoadsView", author = "Andrii Liashenko")
+    public void createUnwindedRoadsView(MongoTemplate mongoTemplate) {
+        String view = "v_unwinded_roads";
+        String collection = "roads";
+        String pipeLine = "[\n" +
+                "  {\n" +
+                "    '$unwind': {\n" +
+                "      'path': '$measurements'\n" +
+                "    }\n" +
+                "  }\n" +
+                "]";
+
+        mongoTemplate.executeCommand(String.format("{ create: '%s', viewOn: '%s', pipeline: %s }",
+                view,
+                collection,
+                pipeLine));
+    }
+
 }

@@ -3,6 +3,12 @@
 server:
   port: 48091
 
+application:
+  percentile:
+    first: 25
+    second: 50
+    third: 75
+
 spring:
   data:
     mongodb:
@@ -19,5 +25,5 @@ spring:
   profiles: docker
   data:
     mongodb:
-      host: mongodatabase
+      host: mongodatabase2
       port: 27017
